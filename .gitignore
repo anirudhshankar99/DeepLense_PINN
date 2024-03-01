@@ -2,3 +2,9 @@
 /env/
 /augmented_data/
 /test/
+/temp/
+/resnet/resnet50_kmnist.pt
+/resnet/test_resnet.ipynb
+/resnet/model.pth
+/resnet/plot.png
+/resnet/lightning_logs/
