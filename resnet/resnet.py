@@ -12,9 +12,10 @@ class block(torch.nn.Module):
         self.bn3 = torch.nn.BatchNorm2d(out_channels*self.expansion)
         self.relu = torch.nn.ReLU()
         self.identity_downsampling = identity_downsampling
+        self.stride = stride
         
     def forward(self, x):
-        identity = x
+        identity = x.clone()
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)

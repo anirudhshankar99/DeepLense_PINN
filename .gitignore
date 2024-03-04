@@ -1,10 +1,12 @@
 /dataset/
 /env/
-/augmented_data/
+/augmented_dataset/
 /test/
-/temp/
 /resnet/resnet50_kmnist.pt
 /resnet/test_resnet.ipynb
 /resnet/model.pth
 /resnet/plot.png
 /resnet/lightning_logs/
+/trained_models/
+training_scripts/
+/Results/
