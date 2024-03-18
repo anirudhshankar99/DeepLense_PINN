@@ -71,7 +71,7 @@ Evaluation metrics include AOC scores with ROC curves plotted for each class rep
 
 | Model | no | sphere | vort | Mean |
 | ----- | --- | --- | --- | --- |
-| Resnet_18 | 0.981 | 1.000 | 0.998 | 0.993 |
+| Resnet_18 | 0.981 | 1.000 | 0.998 | **0.993** |
 | Resnet_simple | 0.951 | 0.999 | 0.995 | 0.982 |
 | SIS_autoencoder | 0.974 | 1.000 | 0.995 | 0.990 |
 | SIS_autoencoder2 | 0.977 | 0.999 | 0.996 | **0.991** |
