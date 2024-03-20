@@ -22,7 +22,7 @@ Below is a summary of the same:
 | ----- | ------------ | ------- |
 | Resnet_18 | Classifier | Benchmark performance |
 | Resnet_simple | Classifier | Comparison with Resnet_18 |
-| Autoencoder_resnet_simple | Autoencoder | Generate $k(x,x)$ or regenerate the lensing images from a latent space |
+| Autoencoder_resnet_simple | Autoencoder | Generate $k(x,y)$ or regenerate the lensing images from a latent space |
 | SIS_autoencoder | Physics-informed classifier | Improve classification |
 | SIS_autoencoder2 | Physics-informed classifier | Improve classification |
 
