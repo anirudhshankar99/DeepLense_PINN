@@ -28,10 +28,11 @@ Below is a summary of the same:
 
 ## 3. Methods and motivation
 
-All models are trained using a 90:10 train:validation split on the training dataset, and then evaluated for ROC statistics separately using the test dataset at the end of training. All training notebooks can be found in the repository. Training was almost always done for 200 epochs, and then fine-tuned if necessary for few more if deemed necessary.
+All models are trained using a 90:10 train:validation split on the training dataset, and then evaluated for ROC statistics separately using the test dataset at the end of training. All training notebooks can be found in the repository. Training was almost always done for 200 epochs, and then fine-tuned for a few more if deemed necessary.
 
-### 3.1 Data and augmentation
+### 3.1 Data, augmentation and resources
 The dataset used is the lensing images with dark matter substructure presented in $^{[2]}$. To present a broader variety in data for training, the lensing images are (1) rotated randomly (2) scaled between 0.8 to 1.2 times the input.
+All the models are trained and tested on my personal GeForce RTX 3050 (mobile) GPU.
 
 ### 3.2 Single Isothermal Sphere Model:
 Lensing can be described by the SIS model as:
@@ -71,16 +72,16 @@ Evaluation metrics include AOC scores with ROC curves plotted for each class rep
 
 | Model | no | sphere | vort | Mean |
 | ----- | --- | --- | --- | --- |
-| Resnet_18 | 0.981 | 1.000 | 0.998 | **0.993** |
 | Resnet_simple | 0.951 | 0.999 | 0.995 | 0.982 |
+| Resnet_18 | 0.981 | 1.000 | 0.998 | **0.993** |
 | SIS_autoencoder | 0.974 | 1.000 | 0.995 | 0.990 |
 | SIS_autoencoder2 | 0.977 | 0.999 | 0.996 | **0.991** |
 
-##### 4.1 Resnet_18
-![alt text](Results/ROCs/resnet_18.png "SIS_Autoencoder")
-
-##### 4.2 Resnet_simple
+##### 4.1 Resnet_simple
 ![alt text](Results/ROCs/resnet_simple.png "SIS_Autoencoder")
+
+##### 4.2 Resnet_18
+![alt text](Results/ROCs/resnet_18.png "SIS_Autoencoder")
 
 ##### 4.3 SIS_Autoencoder
 ![alt text](Results/ROCs/Autoencoder.png "SIS_Autoencoder")
