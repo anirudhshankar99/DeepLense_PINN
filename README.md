@@ -68,7 +68,7 @@ The lensed images are then fed to a classifier.
 
 ## 4. Results
 
-Evaluation metrics include AOC scores with ROC curves plotted for each class representing each dark matter substructure. These metrics are calculated using data from the test dataset.
+Evaluation metrics include AUC scores with ROC curves plotted for each class representing each dark matter substructure. These metrics are calculated using data from the test dataset.
 
 | Model | no | sphere | vort | Mean |
 | ----- | --- | --- | --- | --- |
