@@ -208,9 +208,6 @@ class Resnet_square(torch.nn.Module):
         self.conv3 = torch.nn.Conv2d(in_channels=8,out_channels=8,kernel_size=3,padding=1)
         self.conv4 = torch.nn.Conv2d(in_channels=8,out_channels=1,kernel_size=1,padding=0)
 
-        # self.conv5 = torch.nn.Conv2d(in_channels=16,out_channels=16,kernel_size=1,padding=0)
-        # # self.conv6 = torch.nn.Conv2d(in_channels=16,out_channels=16,kernel_size=1,padding=0)
-
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
