@@ -1,8 +1,13 @@
-import torchvision.models as models
 import torch
 
 class Encoder(torch.nn.Module):
     def __init__(self, fc_in = 25088, latent_dim = 512) -> None:
+        """
+        Encoder module to represent the image in the latent space
+
+        :param fc_in: in_channels for the fc layer that maps to the latent space
+        :param latent_dim: latent space dimension
+        """
         super(Encoder, self).__init__()
 
         self.conv1 = torch.nn.Conv2d(in_channels=1,out_channels=16,kernel_size=5)
@@ -33,7 +38,12 @@ class Encoder(torch.nn.Module):
         self.dr = torch.nn.Dropout(0.1)
 
     def forward(self, x):
+        """
+        Forward propagation
 
+        :param x: Image to be encoded
+        :return: Encoded latent space
+        """
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -77,6 +87,11 @@ class Encoder(torch.nn.Module):
     
 class Decoder(torch.nn.Module):
     def __init__(self, latent_dim=512) -> None:
+        """
+        Decoder module to recreate the image from the latent space
+
+        :param latent_dim: latent space dimension 
+        """
         super(Decoder, self).__init__()
         self.fc1 = torch.nn.Linear(in_features=latent_dim, out_features=2048)
         self.tconv1 = torch.nn.ConvTranspose2d(in_channels=8,out_channels=8,stride=3,kernel_size=3)
@@ -89,6 +104,12 @@ class Decoder(torch.nn.Module):
         self.conv3 = torch.nn.Conv2d(in_channels=4,out_channels=1,kernel_size=4,padding=4)
 
     def forward(self, x):
+        """
+        Forward propagation
+        
+        :param x: Latent space for decoding
+        :return: Decoded image
+        """
         x = self.fc1(x)
         x = x.view(x.shape[0],8,16,16)
 
@@ -117,6 +138,11 @@ class Decoder(torch.nn.Module):
     
 class AutoEncoder(torch.nn.Module):
     def __init__(self, dropout=None) -> None:
+        """
+        Autoencoder module
+
+        :param dropout: Dropout fraction imposed on the latent space
+        """
         super(AutoEncoder, self).__init__()
         self.encoder = Encoder()
         if dropout:
@@ -125,6 +151,12 @@ class AutoEncoder(torch.nn.Module):
         self.decoder = Decoder()
     
     def forward(self, x):
+        """
+        Forward propagation
+
+        :param x: Image to be encoded into the latent space
+        :return: Image decoded from the latent space
+        """
         x = self.encoder(x)
         if self.dr: x = self.dr(x)
         x = self.decoder(x)

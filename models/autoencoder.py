@@ -4,6 +4,14 @@ import torch
 
 class block(torch.nn.Module):
     def __init__(self, in_channels, out_channels, identity_downsampling=None,stride=1):
+        """
+        ResidualBlock module
+
+        :param in_channels: number of incoming channels in the image (here 1, as b/w image)
+        :param out_channels: number of outgoing channels (here 3, equal to the number of classes)
+        :param identity_downsampling: whether identity downsampling needs to be applied, for the residual sum to be consistent in channel count
+        :param stride: stride to be used, default 1 as stride is used in some layers to decrease image shape, but not always
+        """
         super(block, self).__init__()
         self.expansion = 4
         self.conv1 = torch.nn.Conv2d(in_channels,out_channels, kernel_size=1,stride=1,padding=0)
@@ -17,6 +25,12 @@ class block(torch.nn.Module):
         self.stride = stride
         
     def forward(self, x):
+        """
+        Forward propagation
+
+        :param x: Tensor to be propagated through the ResidualBlock module
+        :return: Tensor after passing through the ResidualBlock module
+        """
         identity = x.clone()
         x = self.conv1(x)
         x = self.bn1(x)
@@ -36,6 +50,14 @@ class block(torch.nn.Module):
     
 class inverse_block(torch.nn.Module):
     def __init__(self, in_channels, out_channels, identity_upsampling=None, stride=1):
+        """
+        Inverse counterpart of ResidualBlock module
+
+        :param in_channels: number of incoming channels in the image (here 1, as b/w image)
+        :param out_channels: number of outgoing channels (here 3, equal to the number of classes)
+        :param identity_upsampling: inverse counterpart that is used to upsample to maintain consistency in channels when applying residual sum
+        :param stride: stride to be used, default 1 as stride is used in some layers to decrease image shape, but not always
+        """
         super(inverse_block, self).__init__()
         self.contraction = 2
         self.tconv1 = torch.nn.ConvTranspose2d(in_channels=in_channels,out_channels=out_channels,kernel_size=1,stride=1,padding=0)
@@ -49,6 +71,12 @@ class inverse_block(torch.nn.Module):
         self.stride = stride
 
     def forward(self, x):
+        """
+        Forward propagation
+
+        :param x: Tensor to be propagated through the InverseBlock module
+        :return: Tensor after passing through the InverseBlock module
+        """
         identity = x.clone()
         x = self.tconv1(x)
         x = self.bn1(x)
@@ -68,12 +96,16 @@ class inverse_block(torch.nn.Module):
 
 class Resnet(torch.nn.Module): 
     def __init__(self, block, layers, image_channels, num_classes):
-        # layers gives number of reuses of block [3,4,6,3]
-        # image_channels here is 1 (b/w)
-        # num_classes here is 3 (no, sphere, vort)
+        """
+        Implementation of the ResNet model whose specificity is determined by the layers param
+
+        :class block: implements the Residual block module
+        :param layers: [4] array containing number of repeats in each of the 4 residual layers
+        :param image_channels: number of incoming channels in the image (here 1, as b/w image)
+        :param num_classes: number of outgoing channels (here 3, equal to the number of classes)
+        """
         super(Resnet, self).__init__()
 
-        # initial layers
         self.in_channels = 64
         self.conv1 = torch.nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3) 
         self.bn1 = torch.nn.BatchNorm2d(64) 
@@ -90,6 +122,12 @@ class Resnet(torch.nn.Module):
         self.fc = torch.nn.Linear(512*4, num_classes)
     
     def forward(self, x):
+        """
+        Forward propagation
+
+        :param x: Image to be classified
+        :return: Prediction of the ResNet model
+        """
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -108,6 +146,15 @@ class Resnet(torch.nn.Module):
         return x
 
     def _make_layer(self, block, num_residual_blocks, out_channels, stride):
+        """
+        Makes a layer with the required number of residual blocks
+
+        :class block: Implements the ResidualBlock module
+        :param num_residual_blocks: Number of residual blocks in the layer
+        :param out_channels: Number of channels the processed image needs to be in when leaving the layer
+        :param stride: Stride to be used in some convolution layers
+        :return: Sequential module containing the layer
+        """
         identity_downsampling = None
         layers = []
 
@@ -125,15 +172,35 @@ class Resnet(torch.nn.Module):
 
 class Encoder(torch.nn.Module):
     def __init__(self, block, in_channels, latent_dim):
+        """
+        Encoder to transform image into the latent space
+
+        :class block: implements the Residual block module
+        :param in_channels: number of incoming channels in the image (here 1, as b/w image)
+        :param latent_dim: dimension of the latent space
+        """
         super(Encoder, self).__init__()
         self.model = Resnet(block,[2,2,2,2],in_channels,latent_dim)
 
     def forward(self, x):
+        """
+        Forward propagation
+
+        :param x: Image to be encoded
+        :return: Latent space that the image is encoded in
+        """
         x = self.model(x)
         return x
     
 class Decoder(torch.nn.Module):
     def __init__(self, inverse_block, layers, latent_dim, image_channels) -> None:
+        """
+        Decoder module to recreate the image from the latent space
+
+        :class inverse_block: implements the Residual block module
+        :param layers: [4] array containing number of repeats in each of the 4 residual layers
+        :param latent_dim: dimension of the latent space
+        """
         super(Decoder,self).__init__()
         self.fc = torch.nn.Linear(latent_dim, 512*4)
         self.bn1 = torch.nn.BatchNorm1d(512*4)
@@ -147,6 +214,12 @@ class Decoder(torch.nn.Module):
         self.avgpoolf = torch.nn.AdaptiveAvgPool2d((150,150))
 
     def forward(self, x):
+        """
+        Forward propagation
+
+        :param x: Latent space that the image is encoded in
+        :return: Decoded image
+        """
         x = self.fc(x)
         x = self.bn1(x)
         x = x.view(x.shape[0],32,8,8)
@@ -162,6 +235,14 @@ class Decoder(torch.nn.Module):
 
     
     def _make_layer(self, inverse_block, num_residual_blocks, out_channels, stride):
+        """
+        Makes a layer with the required number of residual blocks
+
+        :class inverse_block: implements the Residual block module
+        :param num_residual_blocks: number of residual blocks to be made in the layer
+        :param stride: stride to be used in the convolutional layers of the layer
+        :return: Sequential module containing the layer
+        """
         identity_upsampling = None
         layers = []
 
@@ -179,11 +260,23 @@ class Decoder(torch.nn.Module):
 
 class AutoEncoder(torch.nn.Module):
     def __init__(self, in_channels, latent_dim) -> None:
+        """
+        The AutoEncoder module to reproduce the image after representing it in a latent space
+
+        :param in_channels: Number of input channels present in the image (here 1, as image is b/w)
+        :param latent_dim: Dimension of the latent space
+        """
         super(AutoEncoder, self).__init__()
         self.encoder = Encoder(block, in_channels=in_channels, latent_dim= latent_dim)
         self.decoder = Decoder(inverse_block, [3,3,3,3], latent_dim, 1)
     
     def forward(self, x):
+        """
+        Forward propagation
+
+        :param x: Image to be encoded
+        :return: Decoded image
+        """
         x = self.encoder(x)
         x = self.decoder(x)
 
@@ -191,6 +284,12 @@ class AutoEncoder(torch.nn.Module):
 
 class Classifier(torch.nn.Module):
     def __init__(self, latent_dim, out_classes) -> None:
+        """
+        Classifier module to classify an image reduced into its latent space
+
+        :param latent_dim: Dimension of latent space
+        :param out_classes: Number of classes in the output (here 3, equal to the number of classis to classify into)
+        """
         super(Classifier, self).__init__()
         self.fc1 = torch.nn.Linear(latent_dim,latent_dim//2)
         self.relu = torch.nn.ReLU()
@@ -199,6 +298,12 @@ class Classifier(torch.nn.Module):
         self.softmax = torch.nn.Softmax(1)
 
     def forward(self, x):
+        """
+        Forward propagation
+
+        :param x: Latent space that the image is encoded in
+        :return: Predicted class of the image
+        """
         x = self.fc1(x)
         x = self.relu(x)
         x = self.fc2(x)
@@ -209,7 +314,21 @@ class Classifier(torch.nn.Module):
         return x
 
 def encoder(in_channels, latent_dim):
+    """
+    Method to return an encoder object
+
+    :param in_channels: Number of channels in the image (here 1, as image is b/w)
+    :param latent_dim: Dimension of latent space
+    :return: Object of the Encoder class
+    """
     return Encoder(block, in_channels, latent_dim)
 
 def classifier(latent_dim, out_classes):
+    """
+    Method to return a classifier object
+
+    :param latent_dim: Dimension of latent space
+    :param out_classes: Number of classes in the output (here 3, equal to the number of classes to classify into)
+    :return: Object of the Classifier class
+    """
     return Classifier(latent_dim, out_classes)

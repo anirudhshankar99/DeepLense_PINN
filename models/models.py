@@ -7,6 +7,14 @@ from einops import repeat
 
 class block(torch.nn.Module):
     def __init__(self, in_channels, out_channels, identity_downsampling=None,stride=1):
+        """
+        ResidualBlock module
+
+        :param in_channels: number of incoming channels in the image (here 1, as b/w image)
+        :param out_channels: number of outgoing channels (here 3, equal to the number of classes)
+        :param identity_downsampling: whether identity downsampling needs to be applied, for the residual sum to be consistent in channel count
+        :param stride: stride to be used, default 1 as stride is used in some layers to decrease image shape, but not always
+        """
         super(block, self).__init__()
         self.expansion = 4
         self.conv1 = torch.nn.Conv2d(in_channels,out_channels, kernel_size=1,stride=1,padding=0)
@@ -20,6 +28,12 @@ class block(torch.nn.Module):
         self.stride = stride
         
     def forward(self, x):
+        """
+        Forward propagation
+
+        :param x: Tensor to be propagated through the ResidualBlock module
+        :return: Tensor after passing through the ResidualBlock module
+        """
         identity = x.clone()
         x = self.conv1(x)
         x = self.bn1(x)
@@ -39,9 +53,14 @@ class block(torch.nn.Module):
 
 class Resnet(torch.nn.Module): 
     def __init__(self, block, layers, image_channels, num_classes):
-        # layers gives number of reuses of block [3,4,6,3]
-        # image_channels here is 1 (b/w)
-        # num_classes here is 3 (no, sphere, vort)
+        """
+        Implementation of the ResNet model whose specificity is determined by the layers param
+
+        :class block: implements the Residual block module
+        :param layers: [4] array containing number of repeats in each of the 4 residual layers
+        :param image_channels: number of incoming channels in the image (here 1, as b/w image)
+        :param num_classes: number of outgoing channels (here 3, equal to the number of classes)
+        """
         super(Resnet, self).__init__()
 
         # initial layers
@@ -61,6 +80,12 @@ class Resnet(torch.nn.Module):
         self.fc = torch.nn.Linear(512*4, num_classes)
     
     def forward(self, x):
+        """
+        Forward propagation
+
+        :param x: Image to be classified
+        :return: Prediction of the ResNet model
+        """
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -79,6 +104,15 @@ class Resnet(torch.nn.Module):
         return x
 
     def _make_layer(self, block, num_residual_blocks, out_channels, stride):
+        """
+        Makes a layer with the required number of residual blocks
+
+        :class block: Implements the ResidualBlock module
+        :param num_residual_blocks: Number of residual blocks in the layer
+        :param out_channels: Number of channels the processed image needs to be in when leaving the layer
+        :param stride: Stride to be used in some convolution layers
+        :return: Sequential module containing the layer
+        """
         identity_downsampling = None
         layers = []
 
@@ -95,64 +129,62 @@ class Resnet(torch.nn.Module):
         return torch.nn.Sequential(*layers)
 
 def ResNet18(image_channels=1, num_classes=3):
+    """
+    Returns an object of the ResNet18 model
+
+    :param image_channels: Number of channels in the image (here 1, as the image is b/w)
+    :param num_classes: Number of classes to be classified into
+    :return: ResNet18 object
+    """
     return Resnet(block, [2,2,2,2], image_channels, num_classes)
 
 class Resnet_simple(torch.nn.Module):
     def __init__(self, fc_in = 25088) -> None:
+        """
+        Resnet_simple model class
+
+        :param fc_in: Optional number of in_channels of the fc layer that creates the latent space
+        """
         super(Resnet_simple, self).__init__()
 
         self.conv1 = torch.nn.Conv2d(in_channels=1,out_channels=16,kernel_size=5)
         self.bn1 = torch.nn.BatchNorm2d(16)
         self.relu = torch.nn.ReLU()
-        
         self.conv2 = torch.nn.Conv2d(in_channels=16,out_channels=32,kernel_size=3)
         self.bn2 = torch.nn.BatchNorm2d(32)
-        #act
         self.mp1 = torch.nn.MaxPool2d(kernel_size=2)
         self.conv3 = torch.nn.Conv2d(in_channels=32,out_channels=32,kernel_size=3)
         self.bn3 = torch.nn.BatchNorm2d(32)
-        #act
         self.mp2 = torch.nn.MaxPool2d(kernel_size=2)
         self.conv4 = torch.nn.Conv2d(in_channels=32,out_channels=32,kernel_size=3)
         self.bn4 = torch.nn.BatchNorm2d(32)
-        #act
         self.mp3 = torch.nn.MaxPool2d(kernel_size=2)
-
-        #residual
         self.conv5 = torch.nn.Conv2d(in_channels=32,out_channels=64,kernel_size=3,padding=1)
         self.bn5 = torch.nn.BatchNorm2d(64)
-        #act
-        #add residual
-        #residual
         self.conv6 = torch.nn.Conv2d(in_channels=64,out_channels=64,kernel_size=3,padding=1)
         self.bn6 = torch.nn.BatchNorm2d(64)
-        #act
-        #add residual#residual
         self.conv7 = torch.nn.Conv2d(in_channels=64,out_channels=64,kernel_size=3,padding=1)
         self.bn7 = torch.nn.BatchNorm2d(64)
-        #act
-        #add residual
-
         self.conv8 = torch.nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3)
         self.bn8 = torch.nn.BatchNorm2d(128)
-        #act
-
-        #flatten
-
         self.fc1 = torch.nn.Linear(in_features=fc_in, out_features=256)
         self.dr = torch.nn.Dropout(p=0.3)
         self.fc2 = torch.nn.Linear(in_features=256, out_features=32)
         self.fc3 = torch.nn.Linear(in_features=32, out_features=3)
-
         self.convx1 = torch.nn.Conv2d(in_channels=32,out_channels=64,kernel_size=1)
         self.convx2 = torch.nn.Conv2d(in_channels=64,out_channels=64,kernel_size=1)
 
     def forward(self, x):
+        """
+        Forward propagation
 
+        :param x: Image to be classified
+        :return: Class predicted by the model
+        """
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        
+
         x = self.conv2(x)
         x = self.bn2(x)
         x = self.relu(x)
@@ -192,51 +224,15 @@ class Resnet_simple(torch.nn.Module):
         
 
         return torch.nn.Softmax(1)(x)
-
-class Resnet_square(torch.nn.Module):
-    def __init__(self, in_channels) -> None:
-        super(Resnet_square, self).__init__()
-        self.conv1 = torch.nn.Conv2d(in_channels=in_channels,out_channels=8,kernel_size=7,padding=3)
-        self.bn1 = torch.nn.BatchNorm2d(8)
-        self.relu = torch.nn.ReLU()
-
-        self.convx1 = torch.nn.Conv2d(in_channels=8,out_channels=16,kernel_size=5,padding=2)
-        self.conv2 = torch.nn.Conv2d(in_channels=16,out_channels=16,kernel_size=3,padding=1)
-        self.conv25 = torch.nn.Conv2d(in_channels=16,out_channels=16,kernel_size=3,padding=1)
-        self.bn2 = torch.nn.BatchNorm2d(16)
-        self.convx2 = torch.nn.Conv2d(in_channels=16,out_channels=8,kernel_size=5,padding=2)
-        self.conv3 = torch.nn.Conv2d(in_channels=8,out_channels=8,kernel_size=3,padding=1)
-        self.conv4 = torch.nn.Conv2d(in_channels=8,out_channels=1,kernel_size=1,padding=0)
-
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        
-        res = x.clone()
-        res = self.convx1(res)
-        x = self.convx1(x)
-        x = self.conv2(x)
-        x = self.bn2(x)
-        x = self.relu(x)
-        x = x + res
-
-        x = self.conv25(x)
-        x = self.bn2(x)
-        x = self.relu(x)
-
-        res = x.clone()
-        res = self.convx2(res)
-        x = self.convx2(x)
-        x = self.conv3(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = x + res
-        x = self.conv4(x)
-        return x
     
 class LensAutoEncoder(torch.nn.Module):
     def __init__(self, in_shape, device) -> None:
+        """
+        The Physics-Informer module that transforms the image as given by the Single Isothermal Sphere equation, method (1)
+
+        :param in_shape: Shape of the image (assuming its a square)
+        :param device: Device to place certain tensors in (cuda or cpu)
+        """
         super(LensAutoEncoder, self).__init__()
         self.sigmoid = torch.nn.Sigmoid()
         self.in_shape = in_shape
@@ -258,6 +254,13 @@ class LensAutoEncoder(torch.nn.Module):
         
     
     def forward(self, x, x_true):
+        """
+        Forward propagation
+
+        :param x: The k(x,y) tensor inferred from a different module that will be used to transform the image
+        :param x_true: Image to be transformed by k(x,y) through the Single Isothermal Sphere equation, method (1)
+        :return: Transformed image
+        """
         BATCH_SIZE = x.shape[0]
         x = x.view(BATCH_SIZE,-1)
         k = self.sigmoid(x)
@@ -291,6 +294,12 @@ class LensAutoEncoder(torch.nn.Module):
     
 class LensAutoEncoder2(torch.nn.Module):
     def __init__(self, in_shape, device) -> None:
+        """
+        The Physics-Informer module that transforms the image as given by the Single Isothermal Sphere equation, method (2)
+
+        :param in_shape: Shape of the image (assuming its a square)
+        :param device: Device to place certain tensors in (cuda or cpu)
+        """
         super(LensAutoEncoder2, self).__init__()
         self.sigmoid = torch.nn.Sigmoid()
         self.in_shape = in_shape
@@ -311,6 +320,13 @@ class LensAutoEncoder2(torch.nn.Module):
         
     
     def forward(self, x, x_true):
+        """
+        Forward propagation
+
+        :param x: The k(x,y) tensor inferred from a different module that will be used to transform the image
+        :param x_true: Image to be transformed by k(x,y) through the Single Isothermal Sphere equation, method (1)
+        :return: Transformed image
+        """
         BATCH_SIZE = x.shape[0]
         x = x.view(BATCH_SIZE,-1)
         k = self.sigmoid(x)
