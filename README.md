@@ -38,7 +38,7 @@ All the models are trained and tested on my personal GeForce RTX 3050 (mobile) G
 
 #### 3.1.2 Setting up
 1. Extract and rename the [dataset](https://drive.google.com/file/d/1ZEyNMEO43u3qhJAwJeBZxFBEYc_pVYZQ/view) directory to 'dataset'
-2. Find and copy the csv files containing image, label mapping in the from the dataset_labels directory to the appropriate directories
+2. Find and copy the csv files containing image, label mapping from the dataset_labels directory to the appropriate directories
 
 ### 3.2 Single Isothermal Sphere Model:
 Lensing can be described by the SIS model as:
