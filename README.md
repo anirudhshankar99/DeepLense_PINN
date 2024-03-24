@@ -1,5 +1,5 @@
 
-# Evaluation task for DeepLense: PINNs
+# Evaluation task for DeepLense: Physics-Guided Machine Learning
 
 #### March 2024
 
@@ -7,7 +7,8 @@
 
 ## 1. Overview
 
-This document contains a description of responses to the Common Test I. Multi-Class Classification and the Specific Test V: Physics-Guided ML. Overall, the models used for the tasks are different architectures that use Residual Learning presented in the original article by K He, X Zhang, S Ren and J Sun $^{[1]}$. An initial description of all the models used is followed by training and evaluation procedure, and then the results and inference.
+This document contains a description of responses to the Common Test I. Multi-Class Classification and the Specific Test V: Physics-Guided ML. 
+Overall, the models used for the tasks are different architectures that use Residual Learning presented originally in the article by K He, X Zhang, S Ren and J Sun $^{[1]}$. An initial description of all the models used is followed by training and evaluation procedure, and then the results and inference.
 
 ## 2. Models
 
@@ -28,24 +29,25 @@ Below is a summary of the same:
 
 ## 3. Methods and motivation
 
-All models are trained using a 90:10 train:validation split on the training dataset, and then evaluated for ROC statistics separately using the test dataset at the end of training. All training notebooks can be found in the repository. Training was almost always done for 200 epochs, and then fine-tuned for a few more if deemed necessary.
+All models are trained using a 90:10 train:validation split on the training dataset, and then evaluated for ROC statistics separately using the test dataset at the end of training. All training and evaluation notebooks can be found in the repository. Training was almost always done for 200 epochs, and then fine-tuned for a few more if deemed necessary.
 
 ### 3.1 Data
 
 #### 3.1.1 Dataset and augmentation
-The dataset used is the lensing images with dark matter substructure presented in $^{[2]}$. To present a broader variety in data for training, the lensing images are (1) rotated randomly (2) scaled between 0.8 to 1.2 times the input.
+The dataset used is the lensing images with dark matter substructure (or without substructure) described in $^{[2]}$. To present a broader variety in data for training, the lensing images are (1) rotated randomly (2) scaled between 0.8 to 1.2 times the input.
 All the models are trained and tested on my personal GeForce RTX 3050 (mobile) GPU.
 
 #### 3.1.2 Setting up
 1. Extract and rename the [dataset](https://drive.google.com/file/d/1ZEyNMEO43u3qhJAwJeBZxFBEYc_pVYZQ/view) directory to 'dataset'
 2. Find and copy the csv files containing image, label mapping from the dataset_labels directory to the appropriate directories
+3. Use `pip install -r requirements.txt` from the parent main directory to install the required dependencies
 
 ### 3.2 Single Isothermal Sphere Model:
 Lensing can be described by the SIS model as:
 $$\overrightarrow{I} = \overrightarrow{S} - \overrightarrow{\nabla}\Psi\overrightarrow{(I)} $$
 Where $i$ represents the image position vector, and $O$ is its post lensed counterpart:
 $$\begin{pmatrix} O_y\\ O_x \end{pmatrix} = \begin{pmatrix} i_y\\ i_x \end{pmatrix} - \overrightarrow{\nabla}\Psi\begin{pmatrix} y\\ x \end{pmatrix}\tag1$$
-Approximating the potential contributions to be majorly from baryonic matter (in the galaxy) and using the Singular Isothermal Sphere (SIS) model, we are able to derive a proportionality between the potential and the radial distance between the center of the galaxy and the point in space:
+Approximating the potential contributions to be majorly from baryonic matter (in the galaxy) and using the Singular Isothermal Sphere (SIS) model:
 $$\Psi \approx \Psi_{galaxy} \propto r(x,y)=k(x,y)\cdot\sqrt{x^2+y^2}$$
 $$\overrightarrow{\nabla}\Psi = \overrightarrow{\nabla}[k(x,y)\cdot\sqrt{x^2+y^2}]$$
 $$=\begin{pmatrix} \frac{\delta [k(x,y)\sqrt{x^2+y^2}]}{\delta y}\\ \frac{\delta [k(x,y)\sqrt{x^2+y^2}]}{\delta x} \end{pmatrix}=\begin{pmatrix} \frac{\delta k}{\delta y}r+\frac{k}{r}y\\ \frac{\delta k}{\delta x}r+\frac{k}{r}x \end{pmatrix}\tag2$$
@@ -63,7 +65,7 @@ It is to note that another option would be to not use approximation $(3)$, and a
 
 The *Autoencoder_resnet_simple* model generates tensors of the same lensing image dimensions, which is interpreted as $k(x,y)$. The lensing images used as inputs are transformed as given by $(4)$, to generate new positions for the intensities in the lensing images, pixel-wise.
 
-![alt text](images/Autoencoder.png "SIS_Autoencoder")
+![Physics informer schematic](images/Autoencoder.png "SIS_Autoencoder")
 
 *SIS_autoencoder* and *SIS_autoencoder2* handle overlapping transformed positions as follows:
 1. *SIS_autoencoder* overwrites intensities to present only one (the most recent pixel)
