@@ -76,7 +76,7 @@ $$\begin{pmatrix} O_y\\ O_x \end{pmatrix} = \begin{pmatrix} i_y\\ i_x \end{pmatr
 $$\begin{pmatrix} i_y\\ i_x \end{pmatrix}=\begin{pmatrix} O_y\\ O_x \end{pmatrix} + \begin{pmatrix} \frac{k}{r}y\\ \frac{k}{r}x \end{pmatrix} \tag4$$
 
 $(4)$ gives the model that is used as an ansatz to classify the lensing images based on their substructure.
-It is to note that another option would be to not use approximation $(3)$, and append the partial derivatives of $k$ in the correction, but it has not been done in this analysis.
+It is to note that another option would be to not use approximation (3), and append the partial derivatives of $k$ in the correction, but it has not been done in this analysis.
 
 ### 3.3 Physics informer
 
