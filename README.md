@@ -69,7 +69,7 @@ For our purpose, each of these terms is simply the gradient of each convolutiona
 
 $$\delta k = \prod_{m=1}^{n}\overrightarrow{\nabla} L_m \rightarrow 0\tag3$$ 
 
-For practicality, we can choose to ignore this term, setting $\delta k=0$ given that the successive product of just the gradients of each layer must be very small. Using the approximation $(3)$, we can gather $(1)$ and $(2)$.
+For practicality, we can choose to ignore this term, setting $\delta k=0$ given that the successive product of just the gradients of each layer must be very small. Using the approximation (3), we can gather $(1)$ and $(2)$.
 
 $$\begin{pmatrix} O_y\\ O_x \end{pmatrix} = \begin{pmatrix} i_y\\ i_x \end{pmatrix} - \begin{pmatrix} \frac{k}{r}y\\ \frac{k}{r}x \end{pmatrix}$$
 
@@ -123,7 +123,7 @@ Evaluation metrics include AUC scores with ROC curves plotted for each class rep
 
 * A direct improvement to the used physics-informed models can be the utilisization of a deeper model such as [*Resnet_18*](#2-models) as a classifier.
 * A possible expansion is the utilization of two levels of classifiers as done in [[2]](#7-bibliography), where the first selects the two most probable classes, and the second more accurately differentiates between them. 
-* Another expansion is to not use approximation [$(3)$](#32-single-isothermal-sphere-model), and to include the gradients of all the convolution layers of the architecture in the lensing equation
+* Another expansion is to not use approximation [(3)](#32-single-isothermal-sphere-model), and to include the gradients of all the convolution layers of the architecture in the lensing equation
 * Transformer architectures replacing the autoencoder to generate $k(x,y)$ could improve performance, being able to better handle localised positional information
 ## 7. Bibliography
 
