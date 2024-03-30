@@ -343,12 +343,9 @@ class LensAutoEncoder2(torch.nn.Module):
         
         out_image = torch.zeros(BATCH_SIZE,self.in_shape, self.in_shape).view(BATCH_SIZE,-1).to(self.device)
 
-        zeroes_origin_masked = out_image.gather(1, lensed_indices.view(BATCH_SIZE,-1))
-
         x = x.view(BATCH_SIZE, -1)
         in_true_values = x[:, self.origin_mask]
-        updates = in_true_values
-        out_image.scatter_add_(1, lensed_indices.view(BATCH_SIZE, -1), updates)
+        out_image.scatter_add_(1, lensed_indices.view(BATCH_SIZE, -1), in_true_values)
 
         max_values, _ = out_image.max(dim=0, keepdim=True)
         max_values, _ = max_values.max(dim=1, keepdim=True)
